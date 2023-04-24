@@ -1,4 +1,4 @@
-module go-scanner
+module github.com/Maginaaa/go-scanner
 
 go 1.17
 

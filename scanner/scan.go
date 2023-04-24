@@ -3,8 +3,8 @@ package scanner
 import (
 	"errors"
 	"fmt"
-	"go-scanner/config"
-	"go-scanner/model"
+	"github.com/Maginaaa/go-scanner/config"
+	"github.com/Maginaaa/go-scanner/model"
 	"time"
 )
 

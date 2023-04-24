@@ -3,7 +3,7 @@ package scanner
 import (
 	"errors"
 	"fmt"
-	"go-scanner/model"
+	"github.com/Maginaaa/go-scanner/model"
 	"golang.org/x/tools/go/callgraph"
 	"path/filepath"
 	"strings"

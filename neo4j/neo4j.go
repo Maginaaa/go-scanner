@@ -2,8 +2,8 @@ package neo4j
 
 import (
 	"fmt"
+	"github.com/Maginaaa/go-scanner/config"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
-	"go-scanner/config"
 	"log"
 )
 

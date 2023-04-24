@@ -3,7 +3,7 @@ package scanner
 import (
 	"bytes"
 	"fmt"
-	"go-scanner/model"
+	"github.com/Maginaaa/go-scanner/model"
 	"go/ast"
 	"go/parser"
 	"go/printer"
