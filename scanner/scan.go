@@ -2,9 +2,9 @@ package scanner
 
 import (
 	"errors"
-	"fmt"
 	"github.com/Maginaaa/go-scanner/config"
 	"github.com/Maginaaa/go-scanner/model"
+	"log"
 	"time"
 )
 
@@ -65,16 +65,10 @@ func (s *Scanner) ServerScanner() (err error) {
 	}
 
 	// 步骤 3
-	s.FileScan()
-
-	fmt.Printf("%s 处理耗时完整耗时：%s\n", s.MicroServerName, time.Since(start))
-	return nil
-}
-
-func (s *Scanner) FileScan() {
-	s.serverToPkgInit()
-	// 文本内容提取
 	s.fileContentScanner()
+
+	log.Printf("%s 处理耗时完整耗时：%s\n", s.MicroServerName, time.Since(start))
+	return nil
 }
 
 // 域节点、服务节点及关系初始化

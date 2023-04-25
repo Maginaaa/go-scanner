@@ -1,6 +1,9 @@
 package model
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+)
 
 const (
 	createDomain      = "MERGE (:Domain { name: '%s'})"
@@ -14,7 +17,7 @@ const (
 
 func CreateDomainCy(dm *DomainNode) string {
 	if dm.Name == "" {
-		panic("DomainNode domainName is empty")
+		log.Fatalln("DomainNode domainName is empty")
 		return ""
 	}
 	return fmt.Sprintf(createDomain, dm.Name)
@@ -22,7 +25,7 @@ func CreateDomainCy(dm *DomainNode) string {
 
 func CreateMicroServerCy(ms *MicroServerNode) string {
 	if ms.Name == "" || ms.Domain == "" || ms.Path == "" {
-		panic("MicroServerNode microServerName or microServerDomain or microServerPath is empty")
+		log.Fatalln("MicroServerNode microServerName or microServerDomain or microServerPath is empty")
 		return ""
 	}
 	return fmt.Sprintf(createMicroServer, ms.Name, ms.Domain, ms.Path)
@@ -30,7 +33,7 @@ func CreateMicroServerCy(ms *MicroServerNode) string {
 
 func CreateApiPathCy(api *ApiNode) string {
 	if api.Path == "" || api.Type == "" {
-		panic("ApiNode apiPath or apiType is empty")
+		log.Fatalln("ApiNode apiPath or apiType is empty")
 		return ""
 	}
 	return fmt.Sprintf(createApiPath, api.Path, api.Type)
@@ -38,7 +41,7 @@ func CreateApiPathCy(api *ApiNode) string {
 
 func CreatePackageCy(pkg *PackageNode) string {
 	if pkg.Name == "" || pkg.Path == "" {
-		panic("PackageNode pkgName or pkgPath is empty")
+		log.Fatalln("PackageNode pkgName or pkgPath is empty")
 		return ""
 	}
 	return fmt.Sprintf(createPackage, pkg.Name, pkg.Path)
@@ -46,7 +49,7 @@ func CreatePackageCy(pkg *PackageNode) string {
 
 func CreateFileCy(file *FileNode) string {
 	if file.Name == "" || file.Path == "" {
-		panic("FileNode fileName or filePath is empty")
+		log.Fatalln("FileNode fileName or filePath is empty")
 		return ""
 	}
 	return fmt.Sprintf(createFile, file.Name, file.Path)
@@ -54,7 +57,7 @@ func CreateFileCy(file *FileNode) string {
 
 func CreateFunctionCy(node *FunctionNode) string {
 	if node.Name == "" || node.File == "" || node.Folder == "" {
-		panic("FunctionNode funcName or funcFile or folderPath is empty")
+		log.Fatalln("FunctionNode funcName or funcFile or folderPath is empty")
 		return ""
 	}
 	return fmt.Sprintf(createFunction, node.Name, node.File, node.Folder, node.StartLine, node.EndLine, node.Content)
@@ -62,7 +65,7 @@ func CreateFunctionCy(node *FunctionNode) string {
 
 func CreateStructCy(st *StructNode) string {
 	if st.Name == "" || st.File == "" {
-		panic("StructNode structName or structFile is empty")
+		log.Fatalln("StructNode structName or structFile is empty")
 		return ""
 	}
 	return fmt.Sprintf(createStruct, st.Name, st.File, st.Folder, st.Content)
@@ -80,7 +83,7 @@ const (
 
 func DomainToServerCy(link *DomainToServerLink) string {
 	if link.Domain.Name == "" || link.Server.Name == "" {
-		panic("DomainToServerLink domainName or serverName is empty")
+		log.Fatalln("DomainToServerLink domainName or serverName is empty")
 		return ""
 	}
 	return fmt.Sprintf(domainToServer, link.Domain.Name, link.Server.Name)
@@ -88,7 +91,7 @@ func DomainToServerCy(link *DomainToServerLink) string {
 
 func ServerToPkgCy(link *ServerToPkgLink) string {
 	if link.Server.Name == "" || link.Pkg.Name == "" {
-		panic("ServerToPkgLink serverName or pkgName is empty")
+		log.Fatalln("ServerToPkgLink serverName or pkgName is empty")
 		return ""
 	}
 	return fmt.Sprintf(serverToPkg, link.Server.Name, link.Pkg.Name, link.Pkg.Path)
@@ -96,7 +99,7 @@ func ServerToPkgCy(link *ServerToPkgLink) string {
 
 func ApiToFunctionCy(link *ApiToFuncLink) string {
 	if link.Api.Path == "" || link.Api.Type == "" || link.Func.Name == "" || link.Func.Folder == "" {
-		panic("ApiToFuncLink apiPath or apiType or funcName or folderPath is empty")
+		log.Fatalln("ApiToFuncLink apiPath or apiType or funcName or folderPath is empty")
 		return ""
 	}
 	return fmt.Sprintf(apiToFunction, link.Api.Path, link.Api.Type, link.Func.Name, link.Func.Folder)
@@ -104,7 +107,7 @@ func ApiToFunctionCy(link *ApiToFuncLink) string {
 
 func PkgToFileCy(link *PkgToFileLink) string {
 	if link.Pkg.Name == "" || link.Pkg.Path == "" || link.File.Name == "" || link.File.Path == "" {
-		panic("PkgToFileLink pkgName or pkgPath or fileName or filePath is empty")
+		log.Fatalln("PkgToFileLink pkgName or pkgPath or fileName or filePath is empty")
 		return ""
 	}
 	return fmt.Sprintf(pkgToFile, link.Pkg.Name, link.Pkg.Path, link.File.Name, link.File.Path)
@@ -112,7 +115,7 @@ func PkgToFileCy(link *PkgToFileLink) string {
 
 func FileToFunctionCy(link *FileToFuncLink) string {
 	if link.File.Name == "" || link.File.Path == "" || link.Func.Name == "" || link.Func.File == "" {
-		panic("FileToFuncLink fileName or filePath or funcName or funcFile is empty")
+		log.Fatalln("FileToFuncLink fileName or filePath or funcName or funcFile is empty")
 		return ""
 	}
 	return fmt.Sprintf(fileToFunction, link.File.Name, link.File.Path, link.Func.Name, link.Func.File)
@@ -120,7 +123,7 @@ func FileToFunctionCy(link *FileToFuncLink) string {
 
 func FileToStructCy(link *FileToStructLink) string {
 	if link.File.Name == "" || link.File.Path == "" || link.Struct.Name == "" || link.Struct.File == "" {
-		panic("pkgToFileLink fileName or filePath or structName or structFile is empty")
+		log.Fatalln("pkgToFileLink fileName or filePath or structName or structFile is empty")
 		return ""
 	}
 	return fmt.Sprintf(fileToFunction, link.File.Name, link.File.Path, link.Struct.Name, link.Struct.File)
@@ -128,7 +131,7 @@ func FileToStructCy(link *FileToStructLink) string {
 
 func FuncCallFuncCy(link *FuncCallFuncLink) string {
 	if link.Caller.Name == "" || link.Caller.File == "" || link.Caller.StartLine == 0 || link.Callee.Name == "" || link.Callee.File == "" {
-		panic("FuncCallFuncLink callerName or callerFile or calleeName or calleeFile is empty")
+		log.Fatalln("FuncCallFuncLink callerName or callerFile or calleeName or calleeFile is empty")
 		return ""
 	}
 	return fmt.Sprintf(funcCallFunc, link.Caller.Name, link.Caller.File, link.Caller.StartLine, link.Caller.EndLine,

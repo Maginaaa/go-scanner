@@ -73,7 +73,7 @@ func (n *Neo4j) BatchWrite(cypherList []string) error {
 func (n *Neo4j) CloseDriver() {
 	err := n.driver.Close()
 	if err != nil {
-		fmt.Println("driver close err :", err)
+		log.Println("driver close err :", err)
 		return
 	}
 	return

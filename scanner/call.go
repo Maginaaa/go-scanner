@@ -1,13 +1,15 @@
 package scanner
 
 import (
-	"fmt"
+	"github.com/Maginaaa/go-scanner/model"
 	"go/token"
 	"golang.org/x/tools/go/callgraph"
 	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/go/pointer"
 	"golang.org/x/tools/go/ssa"
+	"log"
 	"path/filepath"
+	"strings"
 )
 
 // ServerScanner 服务级别的扫描
@@ -22,7 +24,7 @@ func (s *Scanner) callGraph() (err error) {
 		Tests: false,
 	})
 	if err != nil {
-		fmt.Printf("load: %v\n", err)
+		log.Printf("load: %v\n", err)
 		return
 	}
 
@@ -45,7 +47,7 @@ func (s *Scanner) callGraph() (err error) {
 	}
 	result, err := pointer.Analyze(config)
 	if err != nil {
-		fmt.Printf("pointer.Analyze() err: %v,server: %s, dir: %s\n", err, s.MicroServerName, dir)
+		log.Printf("pointer.Analyze() err: %v,server: %s, dir: %s\n", err, s.MicroServerName, dir)
 		return
 	}
 	// 遍历调用链路，获取项目所需结构化数据
@@ -60,9 +62,11 @@ func (s *Scanner) callGraph() (err error) {
 		return nil
 	})
 	if err != nil {
-		fmt.Printf("callgraph.GraphVisitEdges() err: %v", err)
+		log.Printf("callgraph.GraphVisitEdges() err: %v", err)
 		return
 	}
+
+	s.serverToPkgInit()
 
 	return
 }
@@ -93,4 +97,15 @@ func ssaUtilAllPackages(initial []*packages.Package) (*ssa.Program, []*ssa.Packa
 		ssaPkgs = append(ssaPkgs, ssaMap[p])
 	}
 	return prog, ssaPkgs
+}
+
+func (s *Scanner) serverToPkgInit() {
+	for _, pkg := range s.NodeCollection.PackageList.List() {
+		if strings.HasPrefix(pkg.Path, s.NodeCollection.MicroServer.Path) {
+			s.LinkCollection.HasPkgLinkList.Add(model.ServerToPkgLink{
+				Server: s.NodeCollection.MicroServer,
+				Pkg:    pkg,
+			})
+		}
+	}
 }

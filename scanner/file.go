@@ -2,13 +2,13 @@ package scanner
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/Maginaaa/go-scanner/model"
 	"go/ast"
 	"go/parser"
 	"go/printer"
 	"go/token"
 	"io/ioutil"
+	"log"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -25,7 +25,7 @@ func (s *Scanner) fileContentScanner() {
 		fullPath := filepath.Join(s.RootPath, path)
 		fileContent, err := ioutil.ReadFile(fullPath)
 		if err != nil {
-			fmt.Println("read file error : ", fullPath)
+			log.Println("read file error : ", fullPath)
 			continue
 		}
 		importList := make(map[string]string)
@@ -34,7 +34,7 @@ func (s *Scanner) fileContentScanner() {
 		fset := token.NewFileSet()
 		f, err := parser.ParseFile(fset, fullPath, nil, 0)
 		if err != nil {
-			fmt.Println("parse file error : ", fullPath)
+			log.Println("parse file error : ", fullPath)
 			continue
 		}
 		sl := strings.Split(path, "/")
@@ -99,24 +99,13 @@ func (s *Scanner) fileContentScanner() {
 							//	if len(field.Names) == 0 {
 							//		continue
 							//	}
-							//	//fmt.Println("Field Name:", field.Names[0].Name)
-							//	//fmt.Println("Field Type:", field.Type)
+							//	//log.Println("Field Name:", field.Names[0].Name)
+							//	//log.Println("Field Type:", field.Type)
 							//}
 						}
 					}
 				}
 			}
-		}
-	}
-}
-
-func (s *Scanner) serverToPkgInit() {
-	for _, pkg := range s.NodeCollection.PackageList.List() {
-		if strings.HasPrefix(pkg.Path, s.NodeCollection.MicroServer.Path) {
-			s.LinkCollection.HasPkgLinkList.Add(model.ServerToPkgLink{
-				Server: s.NodeCollection.MicroServer,
-				Pkg:    pkg,
-			})
 		}
 	}
 }
