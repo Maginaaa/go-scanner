@@ -137,11 +137,3 @@ func FuncCallFuncCy(link *FuncCallFuncLink) string {
 	return fmt.Sprintf(funcCallFunc, link.Caller.Name, link.Caller.File, link.Caller.StartLine, link.Caller.EndLine,
 		link.Callee.Name, link.Callee.File, link.Callee.StartLine, link.Callee.EndLine)
 }
-
-const (
-	setFunctionDetail = "MATCH (f:Function {name:'%s', file: '%s'}) SET f.begin_line = '%d', f.end_line = '%d', f.body = '%s'"
-)
-
-func SetFunctionDetailCy(funcName, funcFile, body string, beginLine, endLine int) string {
-	return fmt.Sprintf(setFunctionDetail, funcName, funcFile, beginLine, endLine, body)
-}
