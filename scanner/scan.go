@@ -56,9 +56,9 @@ func (s *Scanner) init() error {
 
 func (s *Scanner) ServerScanner() (err error) {
 	start := time.Now()
-	log.Printf("%s 服务开始处理\n", s.MicroServerName)
 	// 步骤 1
 	err = s.init()
+	log.Printf("%s 服务开始处理\n", s.MicroServerName)
 	if err != nil {
 		return err
 	}
