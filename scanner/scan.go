@@ -30,11 +30,14 @@ func (s *Scanner) init() error {
 	if s.ProjectName == "" {
 		return errors.New("ProjectName is empty")
 	}
+	if s.MicroServerName == "" {
+		s.MicroServerName = s.ProjectName
+	}
 	if s.Domain == "" {
 		s.Domain = s.ProjectName
 	}
 	if s.MicroServerPath == "" {
-		s.MicroServerPath = s.ProjectName
+		s.MicroServerPath = s.ProjectPath
 	}
 	if s.MicroServerName == "" {
 		s.MicroServerName = s.ProjectName
