@@ -55,7 +55,7 @@ func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err
 	// 过滤非源代码
 	if s.FilterDependency {
 		if !strings.HasPrefix(callerPkgPath, s.ProjectName) {
-			return funcNode, errors.New("delete node")
+			return funcNode, errors.New("FilterDependency delete node")
 		}
 	}
 	prog := node.Func.Prog
@@ -72,6 +72,14 @@ func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err
 	if strings.Contains(funcName, "$") {
 		ss := strings.Split(funcName, "$")
 		funcName = ss[0]
+	}
+	if len(s.FilterCustomize) > 0 {
+		for _, reg := range s.FilterCustomize {
+			isMatch, _ := filepath.Match(filePath, reg)
+			if isMatch {
+				return funcNode, errors.New("FilterCustomize delete node")
+			}
+		}
 	}
 	// 创建包节点
 	packageNode := model.NewPackageNode(pkgName, callerPkgPath)
