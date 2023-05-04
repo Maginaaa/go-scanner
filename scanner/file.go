@@ -2,6 +2,7 @@ package scanner
 
 import (
 	"bytes"
+	"errors"
 	"go/ast"
 	"go/parser"
 	"go/printer"
@@ -152,23 +153,13 @@ func (s *Scanner) fileContentScanner() {
 // 通常情况下，接收器不存在多个结构体的情况，不存在跨包调用的情况
 func extractStruct(path, folder string, importList map[string]string, list []*ast.Field) []model.StructNode {
 	structList := make([]model.StructNode, 0)
+	var err error
 	for _, param := range list {
 		structName := ""
 		structPath := path
-		switch paramObj := param.Type.(type) {
-		// 指针型参数
-		case *ast.StarExpr:
-			switch x := paramObj.X.(type) {
-			case *ast.Ident:
-				structName = paramObj.X.(*ast.Ident).Name
-			case *ast.SelectorExpr:
-				pkgName := x.X.(*ast.Ident).Name
-				structPath = importList[pkgName]
-				structName = x.Sel.Name
-			}
-		// 值参数
-		case *ast.Ident:
-			structName = paramObj.Name
+		structPath, structName, err = getStructFromTypeExpr(param.Type, path, importList)
+		if err != nil {
+			continue
 		}
 		structList = append(structList, model.StructNode{
 			Name:   structName,
@@ -177,4 +168,42 @@ func extractStruct(path, folder string, importList map[string]string, list []*as
 		})
 	}
 	return structList
+}
+
+func getStructFromTypeExpr(expr ast.Expr, path string, importList map[string]string) (structPath, structName string, err error) {
+	structPath = path
+	switch stmt := expr.(type) {
+	case *ast.Ident:
+		structName = stmt.Name
+		break
+	case *ast.SelectorExpr:
+		pkgName := stmt.X.(*ast.Ident).Name
+		if value, ok := importList[pkgName]; !ok {
+			return "", "", errors.New("continue")
+		} else {
+			structPath = value
+			structName = stmt.Sel.Name
+		}
+		break
+		// 指针型参数
+	case *ast.StarExpr:
+		structPath, structName, err = getStructFromTypeExpr(stmt.X, path, importList)
+		break
+	case *ast.ArrayType:
+		structPath, structName, err = getStructFromTypeExpr(stmt.Elt, path, importList)
+		break
+	case *ast.Ellipsis, *ast.MapType:
+		// TODO: ...[]struct 与 map[]struct 暂不处理
+		return "", "", errors.New("*ast.Ellipsis, *ast.MapType continue")
+	case *ast.ChanType, *ast.FuncType, *ast.InterfaceType:
+		return "", "", errors.New("*ast.ChanType, *ast.FuncType, *ast.InterfaceType continue")
+	case *ast.StructType:
+		return "", "", errors.New("*ast.StructType continue")
+	default:
+		return "", "", errors.New("default continue")
+	}
+	if structName == "" {
+		return "", "", errors.New("continue")
+	}
+	return
 }
