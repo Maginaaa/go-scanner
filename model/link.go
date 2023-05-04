@@ -22,6 +22,9 @@ func (l LinkCollection) ToCypherList() []string {
 	cypher = append(cypher, l.HasStructLinkList.ToCypherList()...)
 	cypher = append(cypher, l.HasFileLinkList.ToCypherList()...)
 	cypher = append(cypher, l.HasPkgLinkList.ToCypherList()...)
+	cypher = append(cypher, l.FuncReceiverList.ToCypherList()...)
+	cypher = append(cypher, l.FuncParamList.ToCypherList()...)
+	cypher = append(cypher, l.FuncReturnList.ToCypherList()...)
 	return cypher
 }
 
