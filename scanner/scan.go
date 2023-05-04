@@ -30,20 +30,17 @@ func (s *Scanner) init() error {
 	if s.ProjectName == "" {
 		return errors.New("ProjectName is empty")
 	}
-	if s.MicroServerName == "" {
-		s.MicroServerName = s.ProjectName
-	}
 	if s.Domain == "" {
 		s.Domain = s.ProjectName
+	}
+	if s.ProjectPath == "" {
+		s.ProjectPath = s.ProjectName
 	}
 	if s.MicroServerPath == "" {
 		s.MicroServerPath = s.ProjectPath
 	}
 	if s.MicroServerName == "" {
 		s.MicroServerName = s.ProjectName
-	}
-	if s.ProjectPath == "" {
-		s.ProjectPath = s.ProjectName
 	}
 	s.configInit()
 	s.NodeCollection = model.NewNodeCollection()

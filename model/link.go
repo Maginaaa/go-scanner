@@ -8,6 +8,9 @@ type LinkCollection struct {
 	HasFileLinkList     PkgToFileLinkList
 	HasPkgLinkList      ServerToPkgLinkList
 	HasServerLink       DomainToServerLink
+	FuncReceiverList    FuncReceiverLinkList
+	FuncParamList       FuncParamLinkList
+	FuncReturnList      FuncReturnLinkList
 }
 
 func (l LinkCollection) ToCypherList() []string {
@@ -30,6 +33,9 @@ func NewLinkCollection() *LinkCollection {
 		HasStructLinkList:   NewFileToStructLinkList(),
 		HasPkgLinkList:      NewServerToPkgLinkList(),
 		HasFileLinkList:     NewPkgToFileLinkList(),
+		FuncReceiverList:    NewFuncReceiverLinkList(),
+		FuncParamList:       NewFuncParamLinkList(),
+		FuncReturnList:      NewFuncReturnLinkList(),
 	}
 }
 
@@ -180,6 +186,93 @@ func (l *FileToStructLinkList) ToCypherList() []string {
 	return cypherList.KeySet()
 }
 
+type FuncReceiverLink struct {
+	Func   FunctionNode
+	Struct StructNode
+}
+
+func (l *FuncReceiverLink) ToCypher() string {
+	return FuncReceiverCy(l)
+}
+
+type FuncReceiverLinkList struct {
+	Links []FuncReceiverLink `json:"links"`
+}
+
+func NewFuncReceiverLinkList() FuncReceiverLinkList {
+	return FuncReceiverLinkList{Links: make([]FuncReceiverLink, 0)}
+}
+
+func (l *FuncReceiverLinkList) Add(link FuncReceiverLink) {
+	l.Links = append(l.Links, link)
+}
+
+func (l *FuncReceiverLinkList) ToCypherList() []string {
+	cypherList := NewSet()
+	for _, link := range l.Links {
+		cypherList.Add(link.ToCypher())
+	}
+	return cypherList.KeySet()
+}
+
+type FuncParamLink struct {
+	Func   FunctionNode
+	Struct StructNode
+}
+
+func (l *FuncParamLink) ToCypher() string {
+	return FuncParamCy(l)
+}
+
+type FuncParamLinkList struct {
+	Links []FuncParamLink `json:"links"`
+}
+
+func NewFuncParamLinkList() FuncParamLinkList {
+	return FuncParamLinkList{Links: make([]FuncParamLink, 0)}
+}
+
+func (l *FuncParamLinkList) Add(link FuncParamLink) {
+	l.Links = append(l.Links, link)
+}
+
+func (l *FuncParamLinkList) ToCypherList() []string {
+	cypherList := NewSet()
+	for _, link := range l.Links {
+		cypherList.Add(link.ToCypher())
+	}
+	return cypherList.KeySet()
+}
+
+type FuncReturnLink struct {
+	Func   FunctionNode
+	Struct StructNode
+}
+
+func (l *FuncReturnLink) ToCypher() string {
+	return FuncReturnCy(l)
+}
+
+type FuncReturnLinkList struct {
+	Links []FuncReturnLink `json:"links"`
+}
+
+func NewFuncReturnLinkList() FuncReturnLinkList {
+	return FuncReturnLinkList{Links: make([]FuncReturnLink, 0)}
+}
+
+func (l *FuncReturnLinkList) Add(link FuncReturnLink) {
+	l.Links = append(l.Links, link)
+}
+
+func (l *FuncReturnLinkList) ToCypherList() []string {
+	cypherList := NewSet()
+	for _, link := range l.Links {
+		cypherList.Add(link.ToCypher())
+	}
+	return cypherList.KeySet()
+}
+
 type ApiToFuncLink struct {
 	Func FunctionNode
 	Api  ApiNode
@@ -245,23 +338,3 @@ func (l *FuncCallFuncLinkList) ToCypherList() []string {
 	}
 	return cypherList.KeySet()
 }
-
-//type CommonLinkList struct {
-//	Links []CommonLink `json:"links"`
-//}
-//
-//func (l CommonLinkList) Add(link CommonLink) {
-//	l.Links = append(l.Links, link)
-//}
-//
-//func (l CommonLinkList) ToCypherList() []string {
-//	cypherList := NewSet()
-//	for _, link := range l.Links {
-//		cypherList.Add(link.CreateCy())
-//	}
-//	return cypherList.KeySet()
-//}
-//
-//func NewCommonLinkList() CommonLinkList {
-//	return CommonLinkList{Links: make([]CommonLink, 0)}
-//}

@@ -38,10 +38,11 @@ func (s *Scanner) fileContentScanner() {
 			continue
 		}
 		sl := strings.Split(path, "/")
-		pathL := sl[:len(sl)-1]
-		folder := strings.Join(pathL, "/")
-		fileName := sl[len(sl)-1]
+		pathList := sl[:len(sl)-1]
+		folder := strings.Join(pathList, "/")
 		importList[f.Name.Name] = folder
+
+		fileName := sl[len(sl)-1]
 		for _, stmt := range f.Imports {
 			// import处理
 			referencePath := strings.Trim(stmt.Path.Value, "\"") // 被调包路径
@@ -56,22 +57,98 @@ func (s *Scanner) fileContentScanner() {
 		for _, decl := range f.Decls {
 			switch stmt := decl.(type) {
 			case *ast.FuncDecl:
+
 				// 函数入参
 				//stmt.Type.Params.List
 				// 函数出参
 				//stmt.Type.Results.List
 				var buf bytes.Buffer
 				_ = printer.Fprint(&buf, fset, stmt)
+				funcName := stmt.Name.Name
+				if funcName == "ExtractApi" {
+					log.Println(buf.String())
+				}
 				// 函数名
 				body := strconv.Quote(string(fileContent[int(stmt.Pos())-fset.Position(stmt.Pos()).Column : stmt.End()-1]))
-				s.NodeCollection.FuncList.Add(model.FunctionNode{
-					Name:      stmt.Name.Name,
+				functionNode := model.FunctionNode{
+					Name:      funcName,
 					File:      path,
 					Folder:    folder,
 					Content:   body,
 					StartLine: fset.Position(stmt.Pos()).Line,
 					EndLine:   fset.Position(stmt.End()).Line,
-				})
+				}
+				s.NodeCollection.FuncList.Add(functionNode)
+
+				// 函数接收器
+				if stmt.Recv != nil {
+					for _, recv := range stmt.Recv.List {
+						structName := ""
+						switch recObj := recv.Type.(type) {
+						case *ast.StarExpr:
+							// 指针接收器
+							structName = recObj.X.(*ast.Ident).Name
+						case *ast.Ident:
+							// 值接收器
+							structName = recObj.Name
+						}
+						s.LinkCollection.FuncReceiverList.Add(model.FuncReceiverLink{
+							Func: functionNode,
+							Struct: model.StructNode{
+								Name:   structName,
+								File:   path,
+								Folder: folder,
+							},
+						})
+					}
+				}
+
+				// 函数入参
+				if stmt.Type.Params != nil {
+					for _, param := range stmt.Type.Params.List {
+						structName := ""
+						switch recObj := param.Type.(type) {
+						case *ast.StarExpr:
+							// 指针接收器
+							structName = recObj.X.(*ast.Ident).Name
+						case *ast.Ident:
+							// 值接收器
+							structName = recObj.Name
+						}
+						s.LinkCollection.FuncParamList.Add(model.FuncParamLink{
+							Func: functionNode,
+							Struct: model.StructNode{
+								Name:   structName,
+								File:   path,
+								Folder: folder,
+							},
+						})
+					}
+				}
+
+				// 函数返回
+				if stmt.Type.Results != nil {
+					for _, result := range stmt.Type.Results.List {
+						structName := ""
+						switch recObj := result.Type.(type) {
+						case *ast.StarExpr:
+							// 指针接收器
+							structName = recObj.X.(*ast.Ident).Name
+						case *ast.Ident:
+							// 值接收器
+							structName = recObj.Name
+						}
+						s.LinkCollection.FuncReturnList.Add(model.FuncReturnLink{
+							Func: functionNode,
+							Struct: model.StructNode{
+								Name:   structName,
+								File:   path,
+								Folder: folder,
+							},
+						})
+					}
+				}
+
 			case *ast.GenDecl:
 				// 处理结构体
 				if stmt.Tok != token.TYPE {

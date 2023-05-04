@@ -79,6 +79,9 @@ const (
 	fileToFunction = "MATCH (f1:File { name: '%s', path: '%s' }) MATCH (f2:Function {name:'%s', file:'%s'}) MERGE (f1)-[:HAS_FUNCTION]->(f2)"
 	fileToStruct   = "MATCH (f:File { name: '%s', path: '%s' }) MATCH (s:Struct {name:'%s', file:'%s'}) MERGE (f)-[:HAS_STRUCT]->(s)"
 	funcCallFunc   = "MATCH (f1:Function {name:'%s', file: '%s', begin_line : %d, end_line : %d }) MATCH (f2:Function {name:'%s', file: '%s', begin_line : %d, end_line : %d}) MERGE (f1)-[:CALL]->(f2)"
+	funcReceiver   = "MATCH (f:Function {name:'%s', file: '%s', begin_line : %d, end_line : %d }) MATCH (s:Struct {name:'%s', file: '%s'}) MERGE (f)-[:RECEIVER]->(s)"
+	funcParam      = "MATCH (f:Function {name:'%s', file: '%s', begin_line : %d, end_line : %d }) MATCH (s:Struct {name:'%s', file: '%s'}) MERGE (f)-[:PARAM]->(s)"
+	funcReturn     = "MATCH (f:Function {name:'%s', file: '%s', begin_line : %d, end_line : %d }) MATCH (s:Struct {name:'%s', file: '%s'}) MERGE (f)-[:RETURN]->(s)"
 )
 
 func DomainToServerCy(link *DomainToServerLink) string {
@@ -126,7 +129,7 @@ func FileToStructCy(link *FileToStructLink) string {
 		log.Fatalln("pkgToFileLink fileName or filePath or structName or structFile is empty")
 		return ""
 	}
-	return fmt.Sprintf(fileToFunction, link.File.Name, link.File.Path, link.Struct.Name, link.Struct.File)
+	return fmt.Sprintf(fileToStruct, link.File.Name, link.File.Path, link.Struct.Name, link.Struct.File)
 }
 
 func FuncCallFuncCy(link *FuncCallFuncLink) string {
@@ -136,4 +139,31 @@ func FuncCallFuncCy(link *FuncCallFuncLink) string {
 	}
 	return fmt.Sprintf(funcCallFunc, link.Caller.Name, link.Caller.File, link.Caller.StartLine, link.Caller.EndLine,
 		link.Callee.Name, link.Callee.File, link.Callee.StartLine, link.Callee.EndLine)
+}
+
+func FuncReceiverCy(link *FuncReceiverLink) string {
+	if link.Func.Name == "" || link.Func.File == "" || link.Func.StartLine == 0 || link.Struct.Name == "" || link.Struct.File == "" {
+		log.Fatalln("FuncReceiverLink funcName or funcFile or structName or structFile is empty")
+		return ""
+	}
+	return fmt.Sprintf(funcReceiver, link.Func.Name, link.Func.File, link.Func.StartLine, link.Func.EndLine,
+		link.Struct.Name, link.Struct.File)
+}
+
+func FuncParamCy(link *FuncParamLink) string {
+	if link.Func.Name == "" || link.Func.File == "" || link.Func.StartLine == 0 || link.Struct.Name == "" || link.Struct.File == "" {
+		log.Fatalln("FuncParamLink funcName or funcFile or structName or structFile is empty")
+		return ""
+	}
+	return fmt.Sprintf(funcParam, link.Func.Name, link.Func.File, link.Func.StartLine, link.Func.EndLine,
+		link.Struct.Name, link.Struct.File)
+}
+
+func FuncReturnCy(link *FuncReturnLink) string {
+	if link.Func.Name == "" || link.Func.File == "" || link.Func.StartLine == 0 || link.Struct.Name == "" || link.Struct.File == "" {
+		log.Fatalln("FuncReturnLink funcName or funcFile or structName or structFile is empty")
+		return ""
+	}
+	return fmt.Sprintf(funcReturn, link.Func.Name, link.Func.File, link.Func.StartLine, link.Func.EndLine,
+		link.Struct.Name, link.Struct.File)
 }
