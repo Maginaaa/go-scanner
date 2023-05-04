@@ -10,14 +10,14 @@ import (
 
 type Scanner struct {
 	Domain           string   // 域名， 默认为服务名
-	ProjectName      string   // 项目名(必传，域内唯一)
+	ProjectName      string   // 项目名(必传，go.mod文件中的module)
 	ProjectPath      string   // 项目包名，默认同等于ProjectName
 	MicroServerName  string   // 微服务名,如果是单包扫描，同等于服务名
 	MicroServerPath  string   // 服务目录， 默认为服务名(考虑到项目内含有多服务的情况，如果是单包，同等于服务名)
 	RootPath         string   // 文件保存路径(必传)
 	FilterInit       bool     // 是否过滤init函数
 	FilterDependency bool     // 是否过滤三方依赖包
-	FilterCustomize  []string // 过滤一些自定义的包，需传入通配符规则，符合规则的路径将被过滤
+	FilterCustomize  []string // 过滤一些自定义规则，需传入通配符规则，符合规则的路径将被过滤
 	NodeCollection   *model.NodeCollection
 	LinkCollection   *model.LinkCollection
 	PathList         model.Set
