@@ -2,7 +2,6 @@ package scanner
 
 import (
 	"bytes"
-	"github.com/Maginaaa/go-scanner/model"
 	"go/ast"
 	"go/parser"
 	"go/printer"
@@ -12,6 +11,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/Maginaaa/go-scanner/model"
 )
 
 // 文件扫描
@@ -46,28 +47,25 @@ func (s *Scanner) fileContentScanner() {
 		for _, stmt := range f.Imports {
 			// import处理
 			referencePath := strings.Trim(stmt.Path.Value, "\"") // 被调包路径
-			pathList := strings.Split(referencePath, "/")
-			referenceName := pathList[len(pathList)-1] // 被调用包的使用名称
+			referencePathList := strings.Split(referencePath, "/")
+			referenceName := referencePathList[len(referencePathList)-1] // 被调用包的使用名称
 			if nil != stmt.Name {
 				// 别名
 				referenceName = stmt.Name.Name
+			}
+			if s.FilterDependency {
+				if !strings.HasPrefix(referencePath, s.MicroServerPath) {
+					continue
+				}
 			}
 			importList[referenceName] = referencePath
 		}
 		for _, decl := range f.Decls {
 			switch stmt := decl.(type) {
 			case *ast.FuncDecl:
-
-				// 函数入参
-				//stmt.Type.Params.List
-				// 函数出参
-				//stmt.Type.Results.List
 				var buf bytes.Buffer
 				_ = printer.Fprint(&buf, fset, stmt)
 				funcName := stmt.Name.Name
-				if funcName == "ExtractApi" {
-					log.Println(buf.String())
-				}
 				// 函数名
 				body := strconv.Quote(string(fileContent[int(stmt.Pos())-fset.Position(stmt.Pos()).Column : stmt.End()-1]))
 				functionNode := model.FunctionNode{
@@ -82,73 +80,36 @@ func (s *Scanner) fileContentScanner() {
 
 				// 函数接收器
 				if stmt.Recv != nil {
-					for _, recv := range stmt.Recv.List {
-						structName := ""
-						switch recObj := recv.Type.(type) {
-						case *ast.StarExpr:
-							// 指针接收器
-							structName = recObj.X.(*ast.Ident).Name
-						case *ast.Ident:
-							// 值接收器
-							structName = recObj.Name
-						}
+					structList := extractStruct(path, folder, importList, stmt.Recv.List)
+					for _, st := range structList {
 						s.LinkCollection.FuncReceiverList.Add(model.FuncReceiverLink{
-							Func: functionNode,
-							Struct: model.StructNode{
-								Name:   structName,
-								File:   path,
-								Folder: folder,
-							},
+							Func:   functionNode,
+							Struct: st,
 						})
 					}
 				}
 
 				// 函数入参
 				if stmt.Type.Params != nil {
-					for _, param := range stmt.Type.Params.List {
-						structName := ""
-						switch recObj := param.Type.(type) {
-						case *ast.StarExpr:
-							// 指针接收器
-							structName = recObj.X.(*ast.Ident).Name
-						case *ast.Ident:
-							// 值接收器
-							structName = recObj.Name
-						}
+					structList := extractStruct(path, folder, importList, stmt.Type.Params.List)
+					for _, st := range structList {
 						s.LinkCollection.FuncParamList.Add(model.FuncParamLink{
-							Func: functionNode,
-							Struct: model.StructNode{
-								Name:   structName,
-								File:   path,
-								Folder: folder,
-							},
+							Func:   functionNode,
+							Struct: st,
 						})
 					}
 				}
 
 				// 函数返回
 				if stmt.Type.Results != nil {
-					for _, result := range stmt.Type.Results.List {
-						structName := ""
-						switch recObj := result.Type.(type) {
-						case *ast.StarExpr:
-							// 指针接收器
-							structName = recObj.X.(*ast.Ident).Name
-						case *ast.Ident:
-							// 值接收器
-							structName = recObj.Name
-						}
+					structList := extractStruct(path, folder, importList, stmt.Type.Results.List)
+					for _, st := range structList {
 						s.LinkCollection.FuncReturnList.Add(model.FuncReturnLink{
-							Func: functionNode,
-							Struct: model.StructNode{
-								Name:   structName,
-								File:   path,
-								Folder: folder,
-							},
+							Func:   functionNode,
+							Struct: st,
 						})
 					}
 				}
-
 			case *ast.GenDecl:
 				// 处理结构体
 				if stmt.Tok != token.TYPE {
@@ -185,4 +146,35 @@ func (s *Scanner) fileContentScanner() {
 			}
 		}
 	}
+}
+
+// 将三种结构体处理逻辑进行封装（接收器、参数、返回）
+// 通常情况下，接收器不存在多个结构体的情况，不存在跨包调用的情况
+func extractStruct(path, folder string, importList map[string]string, list []*ast.Field) []model.StructNode {
+	structList := make([]model.StructNode, 0)
+	for _, param := range list {
+		structName := ""
+		structPath := path
+		switch paramObj := param.Type.(type) {
+		// 指针型参数
+		case *ast.StarExpr:
+			switch x := paramObj.X.(type) {
+			case *ast.Ident:
+				structName = paramObj.X.(*ast.Ident).Name
+			case *ast.SelectorExpr:
+				pkgName := x.X.(*ast.Ident).Name
+				structPath = importList[pkgName]
+				structName = x.Sel.Name
+			}
+		// 值参数
+		case *ast.Ident:
+			structName = paramObj.Name
+		}
+		structList = append(structList, model.StructNode{
+			Name:   structName,
+			File:   structPath,
+			Folder: folder,
+		})
+	}
+	return structList
 }

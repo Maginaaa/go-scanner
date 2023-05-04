@@ -68,9 +68,6 @@ func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err
 	filePath := fmt.Sprintf("%s/%s", callerPkgPath, fileName)
 	// 函数名
 	funcName := node.Func.Name()
-	if funcName == "ExtractApi" {
-		fmt.Println(false)
-	}
 	// 匿名函数处理
 	if strings.Contains(funcName, "$") {
 		ss := strings.Split(funcName, "$")
