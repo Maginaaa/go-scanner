@@ -2,10 +2,10 @@ package scanner
 
 import (
 	"errors"
-	"fmt"
 	"github.com/Maginaaa/go-scanner/model"
 	"golang.org/x/tools/go/callgraph"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -50,22 +50,21 @@ func (s *Scanner) BuildMap(edge *callgraph.Edge) error {
 
 func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err error) {
 
-	// 包路径
-	callerPkgPath := node.Func.Pkg.Pkg.Path()
 	// 过滤非源代码
 	if s.FilterDependency {
-		if !strings.HasPrefix(callerPkgPath, s.ProjectName) {
+		if !strings.HasPrefix(node.Func.Pkg.Pkg.Path(), s.ProjectName) {
 			return funcNode, errors.New("FilterDependency delete node")
 		}
 	}
 	prog := node.Func.Prog
 	pkgName := node.Func.Pkg.Pkg.Name()
 	// 文件名
-	fileName := filepath.Base(prog.Fset.Position(node.Func.Pos()).Filename)
-	if s.ProjectName != s.ProjectPath {
-		callerPkgPath = strings.Replace(callerPkgPath, s.ProjectName, s.ProjectPath, 1)
-	}
-	filePath := fmt.Sprintf("%s/%s", callerPkgPath, fileName)
+	fileAbsPath := prog.Fset.Position(node.Func.Pos()).Filename
+	fileName := filepath.Base(fileAbsPath)
+
+	fileRelativePath, _ := filepath.Rel(s.RootPath, fileAbsPath)
+	callerPkgPath := filepath.Dir(fileRelativePath)
+
 	// 函数名
 	funcName := node.Func.Name()
 	// 匿名函数处理
@@ -73,10 +72,10 @@ func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err
 		ss := strings.Split(funcName, "$")
 		funcName = ss[0]
 	}
+	// 自定义过滤
 	if len(s.FilterCustomize) > 0 {
 		for _, reg := range s.FilterCustomize {
-			isMatch, _ := filepath.Match(filePath, reg)
-			if isMatch {
+			if regexp.MustCompile(reg).MatchString(fileRelativePath) {
 				return funcNode, errors.New("FilterCustomize delete node")
 			}
 		}
@@ -85,15 +84,15 @@ func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err
 	packageNode := model.NewPackageNode(pkgName, callerPkgPath)
 	s.NodeCollection.PackageList.Add(packageNode)
 	// 创建文件节点
-	fileNode := model.NewFileNode(fileName, filePath)
+	fileNode := model.NewFileNode(fileName, fileRelativePath)
 	s.NodeCollection.FileList.Add(fileNode)
 
 	// 保存后续文件扫描需要的文件列表
-	s.PathList.Add(filePath)
+	s.PathList.Add(fileRelativePath)
 
 	funcNode = model.FunctionNode{
 		Name:      funcName,
-		File:      filePath,
+		File:      fileRelativePath,
 		StartLine: prog.Fset.Position(node.Func.Syntax().Pos()).Line,
 		EndLine:   prog.Fset.Position(node.Func.Syntax().End()).Line,
 	}

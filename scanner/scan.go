@@ -17,7 +17,7 @@ type Scanner struct {
 	RootPath         string   // 文件保存路径(必传)
 	FilterInit       bool     // 是否过滤init函数
 	FilterDependency bool     // 是否过滤三方依赖包
-	FilterCustomize  []string // 过滤一些自定义规则，需传入通配符规则，符合规则的路径将被过滤
+	FilterCustomize  []string // 过滤一些自定义规则，需传入正则表达式，符合规则的路径将被过滤
 	NodeCollection   *model.NodeCollection
 	LinkCollection   *model.LinkCollection
 	PathList         model.Set

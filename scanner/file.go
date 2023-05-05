@@ -21,7 +21,7 @@ import (
 // 函数内容获取
 func (s *Scanner) fileContentScanner() {
 	for _, path := range s.PathList.KeySet() {
-		if !strings.HasSuffix(path, ".go") {
+		if filepath.Ext(path) != ".go" {
 			return
 		}
 		fullPath := filepath.Join(s.RootPath, path)
@@ -32,24 +32,21 @@ func (s *Scanner) fileContentScanner() {
 		}
 		importList := make(map[string]string)
 		// 当前文件相对路径
-		//fileRelativePath := strings.TrimPrefix(path, s.RootPath+"/")
 		fset := token.NewFileSet()
 		f, err := parser.ParseFile(fset, fullPath, nil, 0)
 		if err != nil {
 			log.Println("parse file error : ", fullPath)
 			continue
 		}
-		sl := strings.Split(path, "/")
-		pathList := sl[:len(sl)-1]
-		folder := strings.Join(pathList, "/")
+		folder := filepath.Dir(path)
+
 		importList[f.Name.Name] = folder
 
-		fileName := sl[len(sl)-1]
+		fileName := filepath.Base(path)
 		for _, stmt := range f.Imports {
 			// import处理
-			referencePath := strings.Trim(stmt.Path.Value, "\"") // 被调包路径
-			referencePathList := strings.Split(referencePath, "/")
-			referenceName := referencePathList[len(referencePathList)-1] // 被调用包的使用名称
+			referencePath := strings.Trim(stmt.Path.Value, "\"") // 被调包路径 // 被调用包的使用名称
+			referenceName := filepath.Base(referencePath)
 			if nil != stmt.Name {
 				// 别名
 				referenceName = stmt.Name.Name

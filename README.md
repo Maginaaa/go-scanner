@@ -14,7 +14,11 @@ s := scanner.Scanner{
 }
 s.ServerScanner()
 ```
-在`s.NodeCollection`与`s.LinkCollection`中，有完整的节点信息与调用信息，工具内置了neo4j的写入方法，如需使用
+在`s.NodeCollection`与`s.LinkCollection`中，有完整的节点信息与调用信息，所含信息如图
+![img.png](img.png)
+
+
+工具内置了neo4j的写入方法，如需使用
 ```go
 import "github.com/Maginaaa/go-scanner/neo4j"
 
