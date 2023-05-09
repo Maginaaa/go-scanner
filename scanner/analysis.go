@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/Maginaaa/go-scanner/model"
 	"golang.org/x/tools/go/callgraph"
-	"golang.org/x/tools/go/ssa"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -72,7 +71,7 @@ func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err
 	startLine, endLine := 0, 0
 	// 匿名函数处理
 	if strings.Contains(node.Func.Name(), "$") {
-		parentNode := getParentNodeForFuncLiteral(node.Func.Parent())
+		parentNode := node.Func.Parent()
 		funcName = parentNode.Name()
 		startLine = parentNode.Prog.Fset.Position(parentNode.Syntax().Pos()).Line
 		endLine = parentNode.Prog.Fset.Position(parentNode.Syntax().End()).Line
@@ -115,16 +114,4 @@ func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err
 
 	return funcNode, nil
 
-}
-
-// 获取匿名函数的父节点
-func getParentNodeForFuncLiteral(node *ssa.Function) *ssa.Function {
-	if node.Parent() == nil {
-		return node
-	}
-	if strings.Contains(node.Name(), "$") {
-		return getParentNodeForFuncLiteral(node.Parent())
-	} else {
-		return node
-	}
 }
