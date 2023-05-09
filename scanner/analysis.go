@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/Maginaaa/go-scanner/model"
 	"golang.org/x/tools/go/callgraph"
+	"golang.org/x/tools/go/ssa"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -56,6 +57,7 @@ func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err
 			return funcNode, errors.New("FilterDependency delete node")
 		}
 	}
+
 	prog := node.Func.Prog
 	pkgName := node.Func.Pkg.Pkg.Name()
 	// 文件名
@@ -66,12 +68,20 @@ func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err
 	callerPkgPath := filepath.Dir(fileRelativePath)
 
 	// 函数名
-	funcName := node.Func.Name()
+	funcName := ""
+	startLine, endLine := 0, 0
 	// 匿名函数处理
-	if strings.Contains(funcName, "$") {
-		ss := strings.Split(funcName, "$")
-		funcName = ss[0]
+	if strings.Contains(node.Func.Name(), "$") {
+		parentNode := getParentNodeForFuncLiteral(node.Func.Parent())
+		funcName = parentNode.Name()
+		startLine = prog.Fset.Position(parentNode.Syntax().Pos()).Line
+		endLine = prog.Fset.Position(parentNode.Syntax().End()).Line
+	} else {
+		funcName = node.Func.Name()
+		startLine = prog.Fset.Position(node.Func.Syntax().Pos()).Line
+		endLine = prog.Fset.Position(node.Func.Syntax().End()).Line
 	}
+
 	// 自定义过滤
 	if len(s.FilterCustomize) > 0 {
 		for _, reg := range s.FilterCustomize {
@@ -93,8 +103,8 @@ func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err
 	funcNode = model.FunctionNode{
 		Name:      funcName,
 		File:      fileRelativePath,
-		StartLine: prog.Fset.Position(node.Func.Syntax().Pos()).Line,
-		EndLine:   prog.Fset.Position(node.Func.Syntax().End()).Line,
+		StartLine: startLine,
+		EndLine:   endLine,
 	}
 
 	// 创建 包-contains->文件关系
@@ -105,4 +115,13 @@ func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err
 
 	return funcNode, nil
 
+}
+
+// 获取匿名函数的父节点
+func getParentNodeForFuncLiteral(node *ssa.Function) *ssa.Function {
+	if strings.Contains(node.Name(), "$") {
+		return getParentNodeForFuncLiteral(node.Parent())
+	} else {
+		return node
+	}
 }
