@@ -74,8 +74,8 @@ func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err
 	if strings.Contains(node.Func.Name(), "$") {
 		parentNode := getParentNodeForFuncLiteral(node.Func.Parent())
 		funcName = parentNode.Name()
-		startLine = prog.Fset.Position(parentNode.Syntax().Pos()).Line
-		endLine = prog.Fset.Position(parentNode.Syntax().End()).Line
+		startLine = parentNode.Prog.Fset.Position(parentNode.Syntax().Pos()).Line
+		endLine = parentNode.Prog.Fset.Position(parentNode.Syntax().End()).Line
 	} else {
 		funcName = node.Func.Name()
 		startLine = prog.Fset.Position(node.Func.Syntax().Pos()).Line
