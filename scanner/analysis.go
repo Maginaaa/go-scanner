@@ -119,6 +119,9 @@ func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err
 
 // 获取匿名函数的父节点
 func getParentNodeForFuncLiteral(node *ssa.Function) *ssa.Function {
+	if node.Parent().Name() == "" {
+		return node
+	}
 	if strings.Contains(node.Name(), "$") {
 		return getParentNodeForFuncLiteral(node.Parent())
 	} else {
