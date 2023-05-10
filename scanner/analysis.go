@@ -70,7 +70,7 @@ func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err
 	funcName := ""
 	startLine, endLine := 0, 0
 	// 匿名函数处理
-	if strings.Contains(node.Func.Name(), "$") {
+	if strings.Contains(node.Func.Name(), "$") || node.Func.Parent() != nil {
 		parentNode := node.Func.Parent()
 		funcName = parentNode.Name()
 		startLine = parentNode.Prog.Fset.Position(parentNode.Syntax().Pos()).Line
