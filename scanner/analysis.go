@@ -24,7 +24,7 @@ func (s *Scanner) BuildMap(edge *callgraph.Edge) error {
 
 	// . 排除默认 init
 	if s.FilterInit {
-		if callerFileName == "." || strings.Contains(caller.Func.Name(), "init") {
+		if callerFileName == "." || strings.Contains(caller.Func.Name(), "init") || strings.Contains(callee.Func.Name(), "init") {
 			return nil
 		}
 	}
