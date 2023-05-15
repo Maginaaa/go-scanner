@@ -67,17 +67,16 @@ func (s *Scanner) fileContentScanner() {
 				// 函数名
 				body := strconv.Quote(string(fileContent[int(stmt.Pos())-fset.Position(stmt.Pos()).Column : stmt.End()-1]))
 				functionNode := model.FunctionNode{
-					Name:      funcName,
-					File:      path,
-					Folder:    folder,
-					Content:   body,
-					StartLine: fset.Position(stmt.Pos()).Line,
-					EndLine:   fset.Position(stmt.End()).Line,
+					Name:    funcName,
+					File:    path,
+					Folder:  folder,
+					Content: body,
 				}
-				s.NodeCollection.FuncList.Add(functionNode)
 
 				// 函数接收器
 				if stmt.Recv != nil {
+					_, recName, _ := getStructFromTypeExpr(stmt.Recv.List[0].Type, "", importList)
+					functionNode.Rec = recName
 					structList := extractStruct(path, folder, importList, stmt.Recv.List)
 					for _, st := range structList {
 						s.LinkCollection.FuncReceiverList.Add(model.FuncReceiverLink{
@@ -86,6 +85,7 @@ func (s *Scanner) fileContentScanner() {
 						})
 					}
 				}
+				s.NodeCollection.FuncList.Add(functionNode)
 
 				// 函数入参
 				if stmt.Type.Params != nil {

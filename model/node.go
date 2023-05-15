@@ -67,13 +67,12 @@ func (l *ApiNodeList) Append(list ApiNodeList) {
 }
 
 type FunctionNode struct {
-	NodeId    int64  `json:"id"`
-	File      string `json:"file"`
-	Folder    string `json:"folder"`
-	Name      string `json:"name" `
-	Content   string `json:"content"`
-	StartLine int    `json:"start_line"`
-	EndLine   int    `json:"end_line"`
+	NodeId  int64  `json:"id"`
+	File    string `json:"file"`
+	Folder  string `json:"folder"`
+	Name    string `json:"name" `
+	Content string `json:"content"`
+	Rec     string `json:"rec"`
 }
 
 func (n *FunctionNode) ToCypher() string {

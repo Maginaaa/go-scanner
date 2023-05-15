@@ -11,7 +11,7 @@ const (
 	createApiPath     = "MERGE (:Api {path: '%s', type: '%s'})"
 	createPackage     = "MERGE (:Package { name: '%s', path: '%s' })"
 	createFile        = "MERGE (:File { name: '%s', path: '%s' })"
-	createFunction    = "MERGE (:Function {name:'%s', file: '%s', folder: '%s', begin_line : %d, end_line : %d, content : %s})"
+	createFunction    = "MERGE (:Function {name:'%s', file: '%s', folder: '%s', rec : '%s', content : %s})"
 	createStruct      = "MERGE (:Struct {name:'%s', file: '%s' ,folder: '%s', content: %s})"
 )
 
@@ -60,7 +60,7 @@ func CreateFunctionCy(node *FunctionNode) string {
 		log.Fatalln("FunctionNode funcName or funcFile or folderPath is empty")
 		return ""
 	}
-	return fmt.Sprintf(createFunction, node.Name, node.File, node.Folder, node.StartLine, node.EndLine, node.Content)
+	return fmt.Sprintf(createFunction, node.Name, node.File, node.Folder, node.Rec, node.Content)
 }
 
 func CreateStructCy(st *StructNode) string {
@@ -78,10 +78,10 @@ const (
 	pkgToFile      = "MATCH (p:Package { name: '%s', path: '%s' }) MATCH (f:File { name: '%s', path: '%s' }) MERGE (p)-[:HAS_FILE]->(f)"
 	fileToFunction = "MATCH (f1:File { name: '%s', path: '%s' }) MATCH (f2:Function {name:'%s', file:'%s'}) MERGE (f1)-[:HAS_FUNCTION]->(f2)"
 	fileToStruct   = "MATCH (f:File { name: '%s', path: '%s' }) MATCH (s:Struct {name:'%s', file:'%s'}) MERGE (f)-[:HAS_STRUCT]->(s)"
-	funcCallFunc   = "MATCH (f1:Function {name:'%s', file: '%s', begin_line : %d, end_line : %d }) MATCH (f2:Function {name:'%s', file: '%s', begin_line : %d, end_line : %d}) MERGE (f1)-[:CALL]->(f2)"
-	funcReceiver   = "MATCH (f:Function {name:'%s', file: '%s', begin_line : %d, end_line : %d }) MATCH (s:Struct {name:'%s', file: '%s'}) MERGE (f)-[:RECEIVER]->(s)"
-	funcParam      = "MATCH (f:Function {name:'%s', file: '%s', begin_line : %d, end_line : %d }) MATCH (s:Struct {name:'%s', file: '%s'}) MERGE (f)-[:PARAM]->(s)"
-	funcReturn     = "MATCH (f:Function {name:'%s', file: '%s', begin_line : %d, end_line : %d }) MATCH (s:Struct {name:'%s', file: '%s'}) MERGE (f)-[:RETURN]->(s)"
+	funcCallFunc   = "MATCH (f1:Function {name:'%s', file: '%s', rec : '%s'}) MATCH (f2:Function {name:'%s', file: '%s', rec : '%s'}) MERGE (f1)-[:CALL]->(f2)"
+	funcReceiver   = "MATCH (f:Function {name:'%s', file: '%s', rec : '%s' }) MATCH (s:Struct {name:'%s', file: '%s'}) MERGE (f)-[:RECEIVER]->(s)"
+	funcParam      = "MATCH (f:Function {name:'%s', file: '%s', rec : '%s' }) MATCH (s:Struct {name:'%s', file: '%s'}) MERGE (f)-[:PARAM]->(s)"
+	funcReturn     = "MATCH (f:Function {name:'%s', file: '%s', rec : '%s' }) MATCH (s:Struct {name:'%s', file: '%s'}) MERGE (f)-[:RETURN]->(s)"
 )
 
 func DomainToServerCy(link *DomainToServerLink) string {
@@ -133,37 +133,34 @@ func FileToStructCy(link *FileToStructLink) string {
 }
 
 func FuncCallFuncCy(link *FuncCallFuncLink) string {
-	if link.Caller.Name == "" || link.Caller.File == "" || link.Caller.StartLine == 0 || link.Callee.Name == "" || link.Callee.File == "" {
+	if link.Caller.Name == "" || link.Caller.File == "" || link.Callee.Name == "" || link.Callee.File == "" {
 		log.Fatalln("FuncCallFuncLink callerName or callerFile or calleeName or calleeFile is empty")
 		return ""
 	}
-	return fmt.Sprintf(funcCallFunc, link.Caller.Name, link.Caller.File, link.Caller.StartLine, link.Caller.EndLine,
-		link.Callee.Name, link.Callee.File, link.Callee.StartLine, link.Callee.EndLine)
+	return fmt.Sprintf(funcCallFunc, link.Caller.Name, link.Caller.File, link.Caller.Rec,
+		link.Callee.Name, link.Callee.File, link.Callee.Rec)
 }
 
 func FuncReceiverCy(link *FuncReceiverLink) string {
-	if link.Func.Name == "" || link.Func.File == "" || link.Func.StartLine == 0 || link.Struct.Name == "" || link.Struct.File == "" {
+	if link.Func.Name == "" || link.Func.File == "" || link.Struct.Name == "" || link.Struct.File == "" {
 		log.Fatalln("FuncReceiverLink funcName or funcFile or structName or structFile is empty")
 		return ""
 	}
-	return fmt.Sprintf(funcReceiver, link.Func.Name, link.Func.File, link.Func.StartLine, link.Func.EndLine,
-		link.Struct.Name, link.Struct.File)
+	return fmt.Sprintf(funcReceiver, link.Func.Name, link.Func.File, link.Func.Rec, link.Struct.Name, link.Struct.File)
 }
 
 func FuncParamCy(link *FuncParamLink) string {
-	if link.Func.Name == "" || link.Func.File == "" || link.Func.StartLine == 0 || link.Struct.Name == "" || link.Struct.File == "" {
+	if link.Func.Name == "" || link.Func.File == "" || link.Struct.Name == "" || link.Struct.File == "" {
 		log.Fatalln("FuncParamLink funcName or funcFile or structName or structFile is empty")
 		return ""
 	}
-	return fmt.Sprintf(funcParam, link.Func.Name, link.Func.File, link.Func.StartLine, link.Func.EndLine,
-		link.Struct.Name, link.Struct.File)
+	return fmt.Sprintf(funcParam, link.Func.Name, link.Func.File, link.Func.Rec, link.Struct.Name, link.Struct.File)
 }
 
 func FuncReturnCy(link *FuncReturnLink) string {
-	if link.Func.Name == "" || link.Func.File == "" || link.Func.StartLine == 0 || link.Struct.Name == "" || link.Struct.File == "" {
+	if link.Func.Name == "" || link.Func.File == "" || link.Struct.Name == "" || link.Struct.File == "" {
 		log.Fatalln("FuncReturnLink funcName or funcFile or structName or structFile is empty")
 		return ""
 	}
-	return fmt.Sprintf(funcReturn, link.Func.Name, link.Func.File, link.Func.StartLine, link.Func.EndLine,
-		link.Struct.Name, link.Struct.File)
+	return fmt.Sprintf(funcReturn, link.Func.Name, link.Func.File, link.Func.Rec, link.Struct.Name, link.Struct.File)
 }

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/Maginaaa/go-scanner/model"
 	"golang.org/x/tools/go/callgraph"
+	"golang.org/x/tools/go/ssa"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -68,17 +69,20 @@ func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err
 
 	// 函数名
 	funcName := ""
-	startLine, endLine := 0, 0
+	//startLine, endLine := 0, 0
+	recName := ""
 	// 匿名函数处理
 	if strings.Contains(node.Func.Name(), "$") || node.Func.Parent() != nil {
 		parentNode := node.Func.Parent()
 		funcName = parentNode.Name()
-		startLine = parentNode.Prog.Fset.Position(parentNode.Syntax().Pos()).Line
-		endLine = parentNode.Prog.Fset.Position(parentNode.Syntax().End()).Line
+		//startLine = parentNode.Prog.Fset.Position(parentNode.Syntax().Pos()).Line
+		//endLine = parentNode.Prog.Fset.Position(parentNode.Syntax().End()).Line
+		recName = getRecName(parentNode)
 	} else {
 		funcName = node.Func.Name()
-		startLine = prog.Fset.Position(node.Func.Syntax().Pos()).Line
-		endLine = prog.Fset.Position(node.Func.Syntax().End()).Line
+		//startLine = prog.Fset.Position(node.Func.Syntax().Pos()).Line
+		//endLine = prog.Fset.Position(node.Func.Syntax().End()).Line
+		recName = getRecName(node.Func)
 	}
 
 	// 自定义过滤
@@ -100,10 +104,11 @@ func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err
 	s.PathList.Add(fileRelativePath)
 
 	funcNode = model.FunctionNode{
-		Name:      funcName,
-		File:      fileRelativePath,
-		StartLine: startLine,
-		EndLine:   endLine,
+		Name: funcName,
+		File: fileRelativePath,
+		//StartLine: startLine,
+		//EndLine:   endLine,
+		Rec: recName,
 	}
 
 	// 创建 包-contains->文件关系
@@ -114,4 +119,12 @@ func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err
 
 	return funcNode, nil
 
+}
+
+func getRecName(node *ssa.Function) string {
+	if node.Signature.Recv() != nil {
+		arr := strings.Split(node.Signature.Recv().Type().String(), "/")
+		return strings.Split(arr[len(arr)-1], ".")[1]
+	}
+	return ""
 }
