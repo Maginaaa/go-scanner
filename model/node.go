@@ -62,6 +62,10 @@ func (l *ApiNodeList) Add(node ApiNode) {
 	l.nodes = append(l.nodes, node)
 }
 
+func (l *ApiNodeList) Len() int {
+	return len(l.nodes)
+}
+
 func (l *ApiNodeList) Append(list ApiNodeList) {
 	l.nodes = append(l.nodes, list.nodes...)
 }
@@ -90,6 +94,10 @@ func (l *FunctionNodeList) Add(node FunctionNode) {
 	l.nodes = append(l.nodes, node)
 }
 
+func (l *FunctionNodeList) Len() int {
+	return len(l.nodes)
+}
+
 func (l *FunctionNodeList) ToCypher() []string {
 	set := NewSet()
 	for _, node := range l.nodes {
@@ -115,12 +123,12 @@ func (n *StructNode) ToCypher() string {
 }
 
 type StructNodeList struct {
-	Nodes []StructNode `json:"nodes"`
+	nodes []StructNode
 }
 
 func (l *StructNodeList) ToCypher() []string {
 	set := NewSet()
-	for _, node := range l.Nodes {
+	for _, node := range l.nodes {
 		set.Add(node.ToCypher())
 	}
 	return set.KeySet()
@@ -130,11 +138,15 @@ func (l *StructNodeList) Add(node StructNode) {
 	if node.Name == "" {
 		panic("struct name is empty")
 	}
-	l.Nodes = append(l.Nodes, node)
+	l.nodes = append(l.nodes, node)
+}
+
+func (l *StructNodeList) Len() int {
+	return len(l.nodes)
 }
 
 func NewStructNodeList() StructNodeList {
-	return StructNodeList{Nodes: make([]StructNode, 0)}
+	return StructNodeList{nodes: make([]StructNode, 0)}
 }
 
 type FileNode struct {
@@ -152,23 +164,27 @@ func NewFileNode(name, path string) FileNode {
 }
 
 type FileNodeList struct {
-	Nodes []FileNode `json:"nodes"`
+	nodes []FileNode
 }
 
 func NewFileNodeList() FileNodeList {
-	return FileNodeList{Nodes: make([]FileNode, 0)}
+	return FileNodeList{nodes: make([]FileNode, 0)}
 }
 
 func (l *FileNodeList) ToCypher() []string {
 	set := NewSet()
-	for _, node := range l.Nodes {
+	for _, node := range l.nodes {
 		set.Add(node.ToCypher())
 	}
 	return set.KeySet()
 }
 
 func (l *FileNodeList) Add(node FileNode) {
-	l.Nodes = append(l.Nodes, node)
+	l.nodes = append(l.nodes, node)
+}
+
+func (l *FileNodeList) Len() int {
+	return len(l.nodes)
 }
 
 type PackageNode struct {
@@ -207,6 +223,10 @@ func (l *PackageNodeList) ToCypher() []string {
 
 func (l *PackageNodeList) Add(node PackageNode) {
 	l.nodes = append(l.nodes, node)
+}
+
+func (l *PackageNodeList) Len() int {
+	return len(l.nodes)
 }
 
 type MicroServerNode struct {
