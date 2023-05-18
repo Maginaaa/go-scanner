@@ -62,6 +62,15 @@ func (l *ApiNodeList) Add(node ApiNode) {
 	l.nodes = append(l.nodes, node)
 }
 
+func (l *ApiNodeList) Get(path string) ApiNode {
+	for _, node := range l.nodes {
+		if node.Path == path {
+			return node
+		}
+	}
+	return ApiNode{}
+}
+
 func (l *ApiNodeList) Len() int {
 	return len(l.nodes)
 }
@@ -92,6 +101,15 @@ func (l *FunctionNodeList) Add(node FunctionNode) {
 		panic("function name is empty")
 	}
 	l.nodes = append(l.nodes, node)
+}
+
+func (l *FunctionNodeList) Get(name string) FunctionNode {
+	for _, node := range l.nodes {
+		if node.Name == name {
+			return node
+		}
+	}
+	return FunctionNode{}
 }
 
 func (l *FunctionNodeList) Len() int {
@@ -141,6 +159,15 @@ func (l *StructNodeList) Add(node StructNode) {
 	l.nodes = append(l.nodes, node)
 }
 
+func (l *StructNodeList) Get(name string) StructNode {
+	for _, node := range l.nodes {
+		if node.Name == name {
+			return node
+		}
+	}
+	return StructNode{}
+}
+
 func (l *StructNodeList) Len() int {
 	return len(l.nodes)
 }
@@ -183,6 +210,15 @@ func (l *FileNodeList) Add(node FileNode) {
 	l.nodes = append(l.nodes, node)
 }
 
+func (l *FileNodeList) Get(name string) FileNode {
+	for _, node := range l.nodes {
+		if node.Name == name {
+			return node
+		}
+	}
+	return FileNode{}
+}
+
 func (l *FileNodeList) Len() int {
 	return len(l.nodes)
 }
@@ -223,6 +259,15 @@ func (l *PackageNodeList) ToCypher() []string {
 
 func (l *PackageNodeList) Add(node PackageNode) {
 	l.nodes = append(l.nodes, node)
+}
+
+func (l *PackageNodeList) Get(name string) PackageNode {
+	for _, node := range l.nodes {
+		if node.Name == name {
+			return node
+		}
+	}
+	return PackageNode{}
 }
 
 func (l *PackageNodeList) Len() int {
