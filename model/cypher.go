@@ -11,7 +11,7 @@ const (
 	createApiPath     = "MERGE (:Api {path: '%s', type: '%s'})"
 	createPackage     = "MERGE (:Package { name: '%s', path: '%s' , import_path: '%s'})"
 	createFile        = "MERGE (:File { name: '%s', path: '%s' })"
-	createFunction    = "MERGE (:Function {name:'%s', file: '%s', package: '%s', rec : '%s', content : '%s'})"
+	createFunction    = "MERGE (:Function {name:'%s', file: '%s', package: '%s', rec : '%s', content : %s})"
 	createStruct      = "MERGE (:Struct {name:'%s', file: '%s' ,folder: '%s', content: %s})"
 )
 

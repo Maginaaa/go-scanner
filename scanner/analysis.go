@@ -11,6 +11,7 @@ import (
 	"golang.org/x/tools/go/ssa"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -123,7 +124,7 @@ func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err
 		Name:    funcName,
 		File:    fileRelativePath,
 		Rec:     recName,
-		Content: buf.String(),
+		Content: strconv.Quote(buf.String()),
 		Package: pkgImportPath,
 	}
 
