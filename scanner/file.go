@@ -65,12 +65,10 @@ func (s *Scanner) fileContentScanner() {
 				_ = printer.Fprint(&buf, fset, stmt)
 				funcName := stmt.Name.Name
 				// 函数名
-				body := strconv.Quote(string(fileContent[int(stmt.Pos())-fset.Position(stmt.Pos()).Column : stmt.End()-1]))
+				//body := strconv.Quote(string(fileContent[int(stmt.Pos())-fset.Position(stmt.Pos()).Column : stmt.End()-1]))
 				functionNode := model.FunctionNode{
-					Name:    funcName,
-					File:    path,
-					Folder:  folder,
-					Content: body,
+					Name: funcName,
+					File: path,
 				}
 
 				// 函数接收器
@@ -85,7 +83,6 @@ func (s *Scanner) fileContentScanner() {
 						})
 					}
 				}
-				s.NodeCollection.FuncList.Add(functionNode)
 
 				// 函数入参
 				if stmt.Type.Params != nil {

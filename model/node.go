@@ -82,7 +82,7 @@ func (l *ApiNodeList) Append(list ApiNodeList) {
 type FunctionNode struct {
 	NodeId  int64  `json:"id"`
 	File    string `json:"file"`
-	Folder  string `json:"folder"`
+	Package string `json:"package"`
 	Name    string `json:"name" `
 	Content string `json:"content"`
 	Rec     string `json:"rec"`
@@ -224,13 +224,14 @@ func (l *FileNodeList) Len() int {
 }
 
 type PackageNode struct {
-	NodeId int64  `json:"id"`
-	Name   string `json:"name"`
-	Path   string `json:"path"`
+	NodeId     int64  `json:"id"`
+	Name       string `json:"name"`
+	Path       string `json:"path"`
+	ImportPath string `json:"import_path"`
 }
 
-func NewPackageNode(name, path string) PackageNode {
-	return PackageNode{NodeId: 0, Name: name, Path: path}
+func NewPackageNode(name, path, importPath string) PackageNode {
+	return PackageNode{NodeId: 0, Name: name, Path: path, ImportPath: importPath}
 }
 
 func (n *PackageNode) ToCypher() string {
@@ -264,6 +265,15 @@ func (l *PackageNodeList) Add(node PackageNode) {
 func (l *PackageNodeList) Get(name string) PackageNode {
 	for _, node := range l.nodes {
 		if node.Name == name {
+			return node
+		}
+	}
+	return PackageNode{}
+}
+
+func (l *PackageNodeList) GetByImportPath(importPath string) PackageNode {
+	for _, node := range l.nodes {
+		if node.ImportPath == importPath {
 			return node
 		}
 	}

@@ -1,8 +1,12 @@
 package scanner
 
 import (
+	"bytes"
 	"errors"
 	"github.com/Maginaaa/go-scanner/model"
+	"go/ast"
+	"go/parser"
+	"go/printer"
 	"golang.org/x/tools/go/callgraph"
 	"golang.org/x/tools/go/ssa"
 	"path/filepath"
@@ -60,18 +64,20 @@ func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err
 
 	prog := node.Func.Prog
 	pkgName := node.Func.Pkg.Pkg.Name()
+	pkgImportPath := node.Func.Pkg.Pkg.Path()
 	// 文件名
 	fileAbsPath := prog.Fset.Position(node.Func.Pos()).Filename
 	fileName := filepath.Base(fileAbsPath)
 
 	fileRelativePath, _ := filepath.Rel(s.RootPath, fileAbsPath)
-	callerPkgPath := filepath.Dir(fileRelativePath)
+	pkgPath := filepath.Dir(fileRelativePath)
 
 	// 函数名
 	funcName := ""
 	//startLine, endLine := 0, 0
 	recName := ""
 	// 匿名函数处理
+
 	if strings.Contains(node.Func.Name(), "$") || node.Func.Parent() != nil {
 		parentNode := node.Func.Parent()
 		funcName = parentNode.Name()
@@ -85,6 +91,16 @@ func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err
 		recName = getRecName(node.Func)
 	}
 
+	file, _ := parser.ParseFile(prog.Fset, fileAbsPath, nil, 0)
+	var buf bytes.Buffer
+	ast.Inspect(file, func(n ast.Node) bool {
+		if st, ok := n.(*ast.FuncDecl); ok && st.Name.Name == funcName {
+			_ = printer.Fprint(&buf, prog.Fset, st)
+			return false
+		}
+		return true
+	})
+
 	// 自定义过滤
 	if len(s.FilterCustomize) > 0 {
 		for _, reg := range s.FilterCustomize {
@@ -94,7 +110,7 @@ func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err
 		}
 	}
 	// 创建包节点
-	packageNode := model.NewPackageNode(pkgName, callerPkgPath)
+	packageNode := model.NewPackageNode(pkgName, pkgPath, pkgImportPath)
 	s.NodeCollection.PackageList.Add(packageNode)
 	// 创建文件节点
 	fileNode := model.NewFileNode(fileName, fileRelativePath)
@@ -104,12 +120,14 @@ func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err
 	s.PathList.Add(fileRelativePath)
 
 	funcNode = model.FunctionNode{
-		Name: funcName,
-		File: fileRelativePath,
-		//StartLine: startLine,
-		//EndLine:   endLine,
-		Rec: recName,
+		Name:    funcName,
+		File:    fileRelativePath,
+		Rec:     recName,
+		Content: buf.String(),
+		Package: pkgImportPath,
 	}
+
+	s.NodeCollection.FuncList.Add(funcNode)
 
 	// 创建 包-contains->文件关系
 	s.LinkCollection.HasFileLinkList.Add(model.PkgToFileLink{Pkg: packageNode, File: fileNode})
