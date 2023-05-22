@@ -75,6 +75,12 @@ func (l *ApiNodeList) Len() int {
 	return len(l.nodes)
 }
 
+func (l *ApiNodeList) Iterate(f func(int, ApiNode)) {
+	for i, node := range l.nodes {
+		f(i, node)
+	}
+}
+
 func (l *ApiNodeList) Append(list ApiNodeList) {
 	l.nodes = append(l.nodes, list.nodes...)
 }
@@ -114,6 +120,12 @@ func (l *FunctionNodeList) Get(name string) FunctionNode {
 
 func (l *FunctionNodeList) Len() int {
 	return len(l.nodes)
+}
+
+func (l *FunctionNodeList) Iterate(f func(int, FunctionNode)) {
+	for i, node := range l.nodes {
+		f(i, node)
+	}
 }
 
 func (l *FunctionNodeList) ToCypher() []string {
@@ -172,6 +184,12 @@ func (l *StructNodeList) Len() int {
 	return len(l.nodes)
 }
 
+func (l *StructNodeList) Iterate(f func(int, StructNode)) {
+	for i, node := range l.nodes {
+		f(i, node)
+	}
+}
+
 func NewStructNodeList() StructNodeList {
 	return StructNodeList{nodes: make([]StructNode, 0)}
 }
@@ -221,6 +239,12 @@ func (l *FileNodeList) Get(name string) FileNode {
 
 func (l *FileNodeList) Len() int {
 	return len(l.nodes)
+}
+
+func (l *FileNodeList) Iterate(f func(int, FileNode)) {
+	for i, node := range l.nodes {
+		f(i, node)
+	}
 }
 
 type PackageNode struct {
@@ -284,6 +308,12 @@ func (l *PackageNodeList) Len() int {
 	return len(l.nodes)
 }
 
+func (l *PackageNodeList) Iterate(f func(int, PackageNode)) {
+	for i, node := range l.nodes {
+		f(i, node)
+	}
+}
+
 type MicroServerNode struct {
 	NodeId int64  `json:"id"`
 	Name   string `json:"name"`
@@ -301,26 +331,6 @@ func (n *MicroServerNode) Set(node MicroServerNode) {
 	n.Domain = node.Domain
 	n.Path = node.Path
 }
-
-//type MicroServerNodeList struct {
-//	Nodes []MicroServerNode `json:"nodes"`
-//}
-//
-//func NewMicroServerNodeList() MicroServerNodeList {
-//	return MicroServerNodeList{Nodes: make([]MicroServerNode, 0)}
-//}
-//
-//func (f *MicroServerNodeList) ToCypherList() []string {
-//	set := NewSet()
-//	for _, node := range f.Nodes {
-//		set.Add(node.CreateCy())
-//	}
-//	return set.KeySet()
-//}
-//
-//func (f *MicroServerNodeList) Add(node MicroServerNode) {
-//	f.Nodes = append(f.Nodes, node)
-//}
 
 type DomainNode struct {
 	NodeId int64  `json:"id"`

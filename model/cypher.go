@@ -102,7 +102,7 @@ func ServerToPkgCy(link *ServerToPkgLink) string {
 
 func ApiToFunctionCy(link *ApiToFuncLink) string {
 	if link.Api.Path == "" || link.Api.Type == "" || link.Func.Name == "" || link.Func.Package == "" {
-		log.Println("ApiToFuncLink apiPath or apiType or funcName or folderPath is empty")
+		log.Println("ApiToFuncLink apiPath or apiType or funcName or funcPackage is empty")
 		return ""
 	}
 	return fmt.Sprintf(apiToFunction, link.Api.Path, link.Api.Type, link.Func.Name, link.Func.Package)
