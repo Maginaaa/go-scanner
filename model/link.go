@@ -1,17 +1,18 @@
 package model
 
 type LinkCollection struct {
-	MappingLinkList        ApiImplFuncLinkList
-	ApiRequestFuncLinkList ApiRequestFuncLinkList
-	CallLinkList           FuncCallFuncLinkList
-	HasFunctionLinkList    FileToFuncLinkList
-	HasStructLinkList      FileToStructLinkList
-	HasFileLinkList        PkgToFileLinkList
-	HasPkgLinkList         ServerToPkgLinkList
-	HasServerLink          DomainToServerLink
-	FuncReceiverList       FuncReceiverLinkList
-	FuncParamList          FuncParamLinkList
-	FuncReturnList         FuncReturnLinkList
+	MappingLinkList         ApiImplFuncLinkList
+	ApiRequestFuncLinkList  ApiRequestFuncLinkList
+	GrpcApiImplFuncLinkList GrpcApiImplFuncLinkList
+	CallLinkList            FuncCallFuncLinkList
+	HasFunctionLinkList     FileToFuncLinkList
+	HasStructLinkList       FileToStructLinkList
+	HasFileLinkList         PkgToFileLinkList
+	HasPkgLinkList          ServerToPkgLinkList
+	HasServerLink           DomainToServerLink
+	FuncReceiverList        FuncReceiverLinkList
+	FuncParamList           FuncParamLinkList
+	FuncReturnList          FuncReturnLinkList
 }
 
 func (l LinkCollection) ToCypherList() []string {
@@ -20,6 +21,7 @@ func (l LinkCollection) ToCypherList() []string {
 	cypher = append(cypher, l.CallLinkList.ToCypherList()...)
 	cypher = append(cypher, l.MappingLinkList.ToCypherList()...)
 	cypher = append(cypher, l.ApiRequestFuncLinkList.ToCypherList()...)
+	cypher = append(cypher, l.GrpcApiImplFuncLinkList.ToCypherList()...)
 	cypher = append(cypher, l.HasFunctionLinkList.ToCypherList()...)
 	cypher = append(cypher, l.HasStructLinkList.ToCypherList()...)
 	cypher = append(cypher, l.HasFileLinkList.ToCypherList()...)
@@ -32,16 +34,17 @@ func (l LinkCollection) ToCypherList() []string {
 
 func NewLinkCollection() *LinkCollection {
 	return &LinkCollection{
-		CallLinkList:           NewFuncCallFuncLinkList(),
-		MappingLinkList:        NewApiToFuncLinkList(),
-		ApiRequestFuncLinkList: NewApiRequestFuncLinkList(),
-		HasFunctionLinkList:    NewFileToFuncLinkList(),
-		HasStructLinkList:      NewFileToStructLinkList(),
-		HasPkgLinkList:         NewServerToPkgLinkList(),
-		HasFileLinkList:        NewPkgToFileLinkList(),
-		FuncReceiverList:       NewFuncReceiverLinkList(),
-		FuncParamList:          NewFuncParamLinkList(),
-		FuncReturnList:         NewFuncReturnLinkList(),
+		CallLinkList:            NewFuncCallFuncLinkList(),
+		MappingLinkList:         NewApiToFuncLinkList(),
+		ApiRequestFuncLinkList:  NewApiRequestFuncLinkList(),
+		GrpcApiImplFuncLinkList: NewGrpcApiImplFuncLinkList(),
+		HasFunctionLinkList:     NewFileToFuncLinkList(),
+		HasStructLinkList:       NewFileToStructLinkList(),
+		HasPkgLinkList:          NewServerToPkgLinkList(),
+		HasFileLinkList:         NewPkgToFileLinkList(),
+		FuncReceiverList:        NewFuncReceiverLinkList(),
+		FuncParamList:           NewFuncParamLinkList(),
+		FuncReturnList:          NewFuncReturnLinkList(),
 	}
 }
 
@@ -338,6 +341,39 @@ func (l *ApiRequestFuncLinkList) Append(list ApiRequestFuncLinkList) {
 }
 
 func (l *ApiRequestFuncLinkList) ToCypherList() []string {
+	cypherList := NewSet()
+	for _, link := range l.Links {
+		cypherList.Add(link.ToCypher())
+	}
+	return cypherList.KeySet()
+}
+
+type GrpcApiImplFuncLink struct {
+	Func    FunctionNode
+	GrpcApi GrpcApiNode
+}
+
+func (l *GrpcApiImplFuncLink) ToCypher() string {
+	return GrpcApiImplFunctionCy(l)
+}
+
+type GrpcApiImplFuncLinkList struct {
+	Links []GrpcApiImplFuncLink `json:"links"`
+}
+
+func NewGrpcApiImplFuncLinkList() GrpcApiImplFuncLinkList {
+	return GrpcApiImplFuncLinkList{Links: make([]GrpcApiImplFuncLink, 0)}
+}
+
+func (l *GrpcApiImplFuncLinkList) Add(link GrpcApiImplFuncLink) {
+	l.Links = append(l.Links, link)
+}
+
+func (l *GrpcApiImplFuncLinkList) Append(list GrpcApiImplFuncLinkList) {
+	l.Links = append(l.Links, list.Links...)
+}
+
+func (l *GrpcApiImplFuncLinkList) ToCypherList() []string {
 	cypherList := NewSet()
 	for _, link := range l.Links {
 		cypherList.Add(link.ToCypher())

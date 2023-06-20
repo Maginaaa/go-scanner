@@ -9,6 +9,7 @@ const (
 	createDomain      = "MERGE (:Domain { name: '%s'})"
 	createMicroServer = "MERGE (:MicroServer { name: '%s', domain: '%s', path: '%s' })"
 	createApiPath     = "MERGE (:Api {path: '%s', type: '%s'})"
+	createGrpcApi     = "MERGE (:GrpcApi {path: '%s', server: '%s'})"
 	createPackage     = "MERGE (:Package { name: '%s', path: '%s' , import_path: '%s'})"
 	createFile        = "MERGE (:File { name: '%s', path: '%s' })"
 	createFunction    = "MERGE (:Function {name:'%s', file: '%s', package: '%s', rec : '%s', content : %s})"
@@ -37,6 +38,14 @@ func CreateApiPathCy(api *ApiNode) string {
 		return ""
 	}
 	return fmt.Sprintf(createApiPath, api.Path, api.Type)
+}
+
+func CreateGrpcApiPathCy(api *GrpcApiNode) string {
+	if api.Path == "" || api.Server == "" {
+		log.Println("GrpcApiNode apiPath or apiServer is empty")
+		return ""
+	}
+	return fmt.Sprintf(createGrpcApi, api.Path, api.Server)
 }
 
 func CreatePackageCy(pkg *PackageNode) string {
@@ -72,17 +81,18 @@ func CreateStructCy(st *StructNode) string {
 }
 
 const (
-	domainToServer     = "MATCH (d:Domain { name: '%s' }) MATCH (s:MicroServer { name: '%s'}) MERGE (d)-[:HAS_SERVER]->(s)"
-	serverToPkg        = "MATCH (s:MicroServer { name: '%s' }) MATCH (p:Package { name: '%s',path : '%s'}) MERGE (s)-[:HAS_PACKAGE]->(p)"
-	apiImplFunction    = "MATCH (a:Api {path: '%s', type: '%s'}) MATCH (f:Function{name:'%s', package: '%s'}) MERGE (a)-[:MAPPING]->(f)"
-	apiRequestFunction = "MATCH (a:Api {path: '%s', type: '%s'}) MATCH (f:Function{name:'%s', package: '%s'}) MERGE (f)-[:REQUEST]->(a)"
-	pkgToFile          = "MATCH (p:Package { name: '%s', path: '%s' }) MATCH (f:File { name: '%s', path: '%s' }) MERGE (p)-[:HAS_FILE]->(f)"
-	fileToFunction     = "MATCH (f1:File { name: '%s', path: '%s' }) MATCH (f2:Function {name:'%s', file:'%s'}) MERGE (f1)-[:HAS_FUNCTION]->(f2)"
-	fileToStruct       = "MATCH (f:File { name: '%s', path: '%s' }) MATCH (s:Struct {name:'%s', file:'%s'}) MERGE (f)-[:HAS_STRUCT]->(s)"
-	funcCallFunc       = "MATCH (f1:Function {name:'%s', file: '%s', rec : '%s'}) MATCH (f2:Function {name:'%s', file: '%s', rec : '%s'}) MERGE (f1)-[:CALL]->(f2)"
-	funcReceiver       = "MATCH (f:Function {name:'%s', file: '%s', rec : '%s' }) MATCH (s:Struct {name:'%s', file: '%s'}) MERGE (f)-[:RECEIVER]->(s)"
-	funcParam          = "MATCH (f:Function {name:'%s', file: '%s', rec : '%s' }) MATCH (s:Struct {name:'%s', file: '%s'}) MERGE (f)-[:PARAM]->(s)"
-	funcReturn         = "MATCH (f:Function {name:'%s', file: '%s', rec : '%s' }) MATCH (s:Struct {name:'%s', file: '%s'}) MERGE (f)-[:RETURN]->(s)"
+	domainToServer      = "MATCH (d:Domain { name: '%s' }) MATCH (s:MicroServer { name: '%s'}) MERGE (d)-[:HAS_SERVER]->(s)"
+	serverToPkg         = "MATCH (s:MicroServer { name: '%s' }) MATCH (p:Package { name: '%s',path : '%s'}) MERGE (s)-[:HAS_PACKAGE]->(p)"
+	apiImplFunction     = "MATCH (a:Api {path: '%s', type: '%s'}) MATCH (f:Function{name:'%s', package: '%s'}) MERGE (a)-[:MAPPING]->(f)"
+	apiRequestFunction  = "MATCH (a:Api {path: '%s', type: '%s'}) MATCH (f:Function{name:'%s', package: '%s'}) MERGE (f)-[:REQUEST]->(a)"
+	grpcApiImplFunction = "MATCH (a:GrpcApi {path: '%s', server: '%s'}) MATCH (f:Function{name:'%s', package: '%s'}) MERGE (a)-[:GRPC_MAPPING]->(f)"
+	pkgToFile           = "MATCH (p:Package { name: '%s', path: '%s' }) MATCH (f:File { name: '%s', path: '%s' }) MERGE (p)-[:HAS_FILE]->(f)"
+	fileToFunction      = "MATCH (f1:File { name: '%s', path: '%s' }) MATCH (f2:Function {name:'%s', file:'%s'}) MERGE (f1)-[:HAS_FUNCTION]->(f2)"
+	fileToStruct        = "MATCH (f:File { name: '%s', path: '%s' }) MATCH (s:Struct {name:'%s', file:'%s'}) MERGE (f)-[:HAS_STRUCT]->(s)"
+	funcCallFunc        = "MATCH (f1:Function {name:'%s', file: '%s', rec : '%s'}) MATCH (f2:Function {name:'%s', file: '%s', rec : '%s'}) MERGE (f1)-[:CALL]->(f2)"
+	funcReceiver        = "MATCH (f:Function {name:'%s', file: '%s', rec : '%s' }) MATCH (s:Struct {name:'%s', file: '%s'}) MERGE (f)-[:RECEIVER]->(s)"
+	funcParam           = "MATCH (f:Function {name:'%s', file: '%s', rec : '%s' }) MATCH (s:Struct {name:'%s', file: '%s'}) MERGE (f)-[:PARAM]->(s)"
+	funcReturn          = "MATCH (f:Function {name:'%s', file: '%s', rec : '%s' }) MATCH (s:Struct {name:'%s', file: '%s'}) MERGE (f)-[:RETURN]->(s)"
 )
 
 func DomainToServerCy(link *DomainToServerLink) string {
@@ -103,7 +113,7 @@ func ServerToPkgCy(link *ServerToPkgLink) string {
 
 func ApiImplFunctionCy(link *ApiImplFuncLink) string {
 	if link.Api.Path == "" || link.Api.Type == "" || link.Func.Name == "" || link.Func.Package == "" {
-		log.Println("ApiToFuncLink apiPath or apiType or funcName or funcPackage is empty")
+		log.Println("ApiImplFunctionCy apiPath or apiType or funcName or funcPackage is empty")
 		return ""
 	}
 	return fmt.Sprintf(apiImplFunction, link.Api.Path, link.Api.Type, link.Func.Name, link.Func.Package)
@@ -111,10 +121,18 @@ func ApiImplFunctionCy(link *ApiImplFuncLink) string {
 
 func ApiRequestFunctionCy(link *ApiRequestFuncLink) string {
 	if link.Api.Path == "" || link.Api.Type == "" || link.Func.Name == "" || link.Func.Package == "" {
-		log.Println("ApiToFuncLink apiPath or apiType or funcName or funcPackage is empty")
+		log.Println("ApiRequestFuncLink apiPath or apiType or funcName or funcPackage is empty")
 		return ""
 	}
 	return fmt.Sprintf(apiRequestFunction, link.Api.Path, link.Api.Type, link.Func.Name, link.Func.Package)
+}
+
+func GrpcApiImplFunctionCy(link *GrpcApiImplFuncLink) string {
+	if link.GrpcApi.Path == "" || link.GrpcApi.Server == "" || link.Func.Name == "" || link.Func.Package == "" {
+		log.Println("GrpcApiImplFunctionCy apiPath or apiServer or funcName or funcPackage is empty")
+		return ""
+	}
+	return fmt.Sprintf(grpcApiImplFunction, link.GrpcApi.Path, link.GrpcApi.Server, link.Func.Name, link.Func.Package)
 }
 
 func PkgToFileCy(link *PkgToFileLink) string {

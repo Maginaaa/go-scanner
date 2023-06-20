@@ -103,10 +103,10 @@ func (s *Scanner) makeSet(node callgraph.Node) (funcNode model.FunctionNode, err
 	})
 
 	// 自定义过滤
-	if len(s.FilterCustomize) > 0 {
-		for _, reg := range s.FilterCustomize {
+	if len(s.CustomFilterPath) > 0 {
+		for _, reg := range s.CustomFilterPath {
 			if regexp.MustCompile(reg).MatchString(fileRelativePath) {
-				return funcNode, errors.New("FilterCustomize delete node")
+				return funcNode, errors.New("CustomFilterPath delete node")
 			}
 		}
 	}

@@ -2,6 +2,7 @@ package model
 
 type NodeCollection struct {
 	ApiList     ApiNodeList
+	GrpcApiList GrpcApiNodeList
 	FuncList    FunctionNodeList
 	StructList  StructNodeList
 	FileList    FileNodeList
@@ -13,6 +14,7 @@ type NodeCollection struct {
 func NewNodeCollection() *NodeCollection {
 	return &NodeCollection{
 		ApiList:     NewApiNodeList(),
+		GrpcApiList: NewGrpcApiNodeList(),
 		FuncList:    NewFuncNodeList(),
 		StructList:  NewStructNodeList(),
 		FileList:    NewFileNodeList(),
@@ -25,6 +27,7 @@ func (c NodeCollection) ToCypherList() []string {
 	cypherList = append(cypherList, c.Domain.ToCypher())
 	cypherList = append(cypherList, c.MicroServer.ToCypher())
 	cypherList = append(cypherList, c.ApiList.ToCypher()...)
+	cypherList = append(cypherList, c.GrpcApiList.ToCypher()...)
 	cypherList = append(cypherList, c.FuncList.ToCypher()...)
 	cypherList = append(cypherList, c.StructList.ToCypher()...)
 	cypherList = append(cypherList, c.FileList.ToCypher()...)
@@ -82,6 +85,59 @@ func (l *ApiNodeList) Iterate(f func(int, ApiNode)) {
 }
 
 func (l *ApiNodeList) Append(list ApiNodeList) {
+	l.nodes = append(l.nodes, list.nodes...)
+}
+
+type GrpcApiNode struct {
+	NodeId int64  `json:"id"`
+	Path   string `json:"path"`
+	Server string `json:"server"`
+}
+
+func (n *GrpcApiNode) CreateCy() string {
+	return CreateGrpcApiPathCy(n)
+}
+
+type GrpcApiNodeList struct {
+	nodes []GrpcApiNode
+}
+
+func NewGrpcApiNodeList() GrpcApiNodeList {
+	return GrpcApiNodeList{nodes: make([]GrpcApiNode, 0)}
+}
+
+func (l *GrpcApiNodeList) ToCypher() []string {
+	set := NewSet()
+	for _, node := range l.nodes {
+		set.Add(node.CreateCy())
+	}
+	return set.KeySet()
+}
+
+func (l *GrpcApiNodeList) Add(node GrpcApiNode) {
+	l.nodes = append(l.nodes, node)
+}
+
+func (l *GrpcApiNodeList) Get(path string) GrpcApiNode {
+	for _, node := range l.nodes {
+		if node.Path == path {
+			return node
+		}
+	}
+	return GrpcApiNode{}
+}
+
+func (l *GrpcApiNodeList) Len() int {
+	return len(l.nodes)
+}
+
+func (l *GrpcApiNodeList) Iterate(f func(int, GrpcApiNode)) {
+	for i, node := range l.nodes {
+		f(i, node)
+	}
+}
+
+func (l *GrpcApiNodeList) Append(list GrpcApiNodeList) {
 	l.nodes = append(l.nodes, list.nodes...)
 }
 

@@ -9,15 +9,16 @@ import (
 )
 
 type Scanner struct {
-	Domain           string   // 域名， 默认为服务名
-	ProjectName      string   // 项目名(必传，go.mod文件中的module)
-	ProjectPath      string   // 项目包名，默认同等于ProjectName
-	MicroServerName  string   // 微服务名,如果是单包扫描，同等于服务名
-	MicroServerPath  string   // 服务目录， 默认为服务名(考虑到项目内含有多服务的情况，如果是单包，同等于服务名)
-	RootPath         string   // 文件保存路径(必传)
-	FilterInit       bool     // 是否过滤init函数
-	FilterDependency bool     // 是否过滤三方依赖包
-	FilterCustomize  []string // 过滤一些自定义规则，需传入正则表达式，符合规则的路径将被过滤
+	Domain           string                 // 域名， 默认为服务名
+	ProjectName      string                 // 项目名(必传，go.mod文件中的module)
+	ProjectPath      string                 // 项目包名，默认同等于ProjectName
+	MicroServerName  string                 // 微服务名,如果是单包扫描，同等于服务名
+	MicroServerPath  string                 // 服务目录， 默认为服务名(考虑到项目内含有多服务的情况，如果是单包，同等于服务名)
+	RootPath         string                 // 文件保存路径(必传)
+	FilterInit       bool                   // 是否过滤init函数
+	FilterDependency bool                   // 是否过滤三方依赖包
+	CustomFilterPath []string               // 过滤一些自定义规则，需传入正则表达式，符合规则的路径将被过滤
+	CustomFunc       func(scanner *Scanner) // 自定义处理逻辑
 	NodeCollection   *model.NodeCollection
 	LinkCollection   *model.LinkCollection
 	PathList         model.Set
@@ -68,6 +69,11 @@ func (s *Scanner) ServerScanner() (err error) {
 
 	// 步骤 3
 	s.fileContentScanner()
+
+	// 步骤 4 自定义处理逻辑
+	if s.CustomFunc != nil {
+		s.CustomFunc(s)
+	}
 
 	log.Printf("%s 处理耗时完整耗时：%s\n", s.MicroServerName, time.Since(start))
 	return nil
